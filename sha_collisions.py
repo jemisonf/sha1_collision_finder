@@ -2,7 +2,7 @@ import hashlib
 import random
 import string
 
-HASH_COLLISION_SIZE = 10
+HASH_COLLISION_SIZE = 2
 
 def get_rand_byte_string(size):
     letters = string.ascii_lowercase
@@ -27,19 +27,19 @@ def find_collisions(cat_file, dog_file):
     count = 0
     while(True):
         count += 1
-        rand_catstr = catstr + get_rand_byte_string(10000)
-        rand_dogstr = dogstr + get_rand_byte_string(10000)
-        cat_hash = hashlib.sha1(rand_catstr).hexdigest()[:HASH_COLLISION_SIZE]
-        dog_hash = hashlib.sha1(rand_dogstr).hexdigest()[:HASH_COLLISION_SIZE]
+        rand_catstr = get_rand_byte_string(100)
+        rand_dogstr = get_rand_byte_string(100)
+        cat_hash = hashlib.sha1(catstr + rand_catstr).hexdigest()[:HASH_COLLISION_SIZE]
+        dog_hash = hashlib.sha1(catstr + rand_dogstr).hexdigest()[:HASH_COLLISION_SIZE]
         cat_hashes[cat_hash] = rand_catstr
         dog_hashes[dog_hash] = rand_dogstr
+        if (cat_hash in dog_hashes):
+            return (catstr + rand_catstr, dog_hashes[cat_hash], count)
         if (dog_hash in cat_hashes):
-            return (cat_hashes[dog_hash], rand_dogstr, count)
-        elif (cat_hash in dog_hashes):
-            return (rand_catstr, dog_hashes[cat_hash], count)
+            return (catstr + cat_hashes[dog_hash], dogstr + rand_dogstr, count)
 
 cat_string, dog_string, count = find_collisions("cat.jpg", "dog.jpg")
 
-print(f"Found collision in {count} attempts")
+print(count)
 write_string("cat_collision.jpg", cat_string)
 write_string("dog_collision.jpg", dog_string)
